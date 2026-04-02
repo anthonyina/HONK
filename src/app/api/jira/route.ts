@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import "server-only";
 import type { IntakeFormData } from "@/app/lib/intake-types";
 
+export const dynamic = "force-dynamic";
+
 // Atlassian Cloud REST API v3
 // Auth: Basic base64("email:api_token") — all server-side, never exposed to client
 // Required env vars:

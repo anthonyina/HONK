@@ -3,6 +3,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import { EMPTY_FORM } from "@/app/lib/intake-types";
 import "server-only";
 
+export const dynamic = "force-dynamic";
+
 const SYSTEM_PROMPT = `You are a product manager assistant. Given a voice transcript of a product intake, extract and structure the information into a JSON object with exactly these fields:
 
 - title: A short (5-8 word) summary title. Must be sentence case: capitalise only the first word and any proper nouns.

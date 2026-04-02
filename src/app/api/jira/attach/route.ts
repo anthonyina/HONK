@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import "server-only";
 
+export const dynamic = "force-dynamic";
+
 function getAuthHeader() {
   const email = process.env.ATLASSIAN_EMAIL!;
   const token = process.env.ATLASSIAN_API_TOKEN!;
