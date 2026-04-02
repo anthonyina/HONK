@@ -3,8 +3,6 @@ import Anthropic from "@anthropic-ai/sdk";
 import { EMPTY_FORM } from "@/app/lib/intake-types";
 import "server-only";
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
 const SYSTEM_PROMPT = `You are a product manager assistant. Given a voice transcript of a product intake, extract and structure the information into a JSON object with exactly these fields:
 
 - title: A short (5-8 word) summary title
@@ -29,6 +27,7 @@ const SYSTEM_PROMPT = `You are a product manager assistant. Given a voice transc
 Use "" for any field not mentioned. Return ONLY valid JSON.`;
 
 export async function POST(req: NextRequest) {
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const { transcript } = await req.json();
 
   if (!transcript || typeof transcript !== "string" || transcript.trim().length === 0) {

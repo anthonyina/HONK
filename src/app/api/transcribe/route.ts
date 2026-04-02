@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import "server-only";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
 export async function POST(req: NextRequest) {
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   const body = await req.formData();
   const audio = body.get("audio") as File;
 
