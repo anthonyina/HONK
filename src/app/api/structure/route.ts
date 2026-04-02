@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 const SYSTEM_PROMPT = `You are a product manager assistant. Given a voice transcript of a product intake, extract and structure the information into a JSON object with exactly these fields:
 
-- title: A short (5-8 word) summary title. Must be sentence case: capitalise only the first word and any proper nouns.
+- title: A short (5-8 word) summary title. STRICT sentence case: only the very first word is capitalised. All other words must be lowercase EXCEPT acronyms that are written in ALL CAPS (e.g. HAWK, HONK, ETA). Wrong: "Real-Time ETA Tracking for Motorists". Right: "Real-time ETA tracking for motorists".
 - shortDescription: An alternate title that works together with the main title — not a summary of it. The title and shortDescription should complement each other: the title names the feature or fix, the shortDescription adds the "so that" or "because" context that the title omits. Do NOT restate the title or repeat its words. Think of them as a headline + subheadline pair that together tell the full story. STRICT LIMIT: must be 50 characters or fewer. Count every character including spaces. If your draft exceeds 50 characters, shorten it until it fits.
 These six fields are inserted verbatim into fixed template sentences. The value you write must read naturally and grammatically when dropped into its slot — correct tense, case, and form. Do not capitalise the first letter. Do not start with a verb in imperative form.
 

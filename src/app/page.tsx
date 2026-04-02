@@ -278,7 +278,7 @@ export default function Page() {
           {formatDuration(recordingSeconds)}
         </Typography>
         <Button
-          variant="outlined"
+          variant="contained"
           size="large"
           startIcon={<StopIcon />}
           onClick={stopRecording}
