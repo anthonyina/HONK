@@ -54,7 +54,16 @@ export async function POST(req: NextRequest) {
   const text =
     message.content[0].type === "text" ? message.content[0].text : "{}";
 
-  const toSentenceCase = (s: string) => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+  const toSentenceCase = (s: string) => {
+    if (!s) return s;
+    return s.split(" ").map((word, i) => {
+      // Preserve acronyms (all-caps words like USAA, BMW, NJM)
+      if (word.length > 1 && word === word.toUpperCase()) return word;
+      // Capitalize first word, lowercase the rest
+      if (i === 0) return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      return word.toLowerCase();
+    }).join(" ");
+  };
 
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : "{}");
