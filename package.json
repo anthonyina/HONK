@@ -10,7 +10,7 @@
     "predev": "npm run generate-multipart-paths",
     "prebuild": "npm run generate-multipart-paths",
     "build": "next build && npm run build:server",
-    "start": "NODE_ENV=production node server/dist/index.js",
+    "start": "next start",
     "build:server": "tsc --project tsconfig.server.json",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
