@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
     const transcription = await openai.audio.transcriptions.create({
       file: namedFile,
       model: "whisper-1",
+      prompt: "This is a product intake for HONK, a roadside assistance technology company. Proper nouns include HONK, HONK agents, dispatchers, providers, motorists.",
     });
     return NextResponse.json({ transcript: transcription.text });
   } catch (error) {

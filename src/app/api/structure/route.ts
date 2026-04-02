@@ -5,7 +5,7 @@ import "server-only";
 
 export const dynamic = "force-dynamic";
 
-const SYSTEM_PROMPT = `You are a product manager assistant. Given a voice transcript of a product intake, extract and structure the information into a JSON object with exactly these fields:
+const SYSTEM_PROMPT = `You are a product manager assistant at HONK, a roadside assistance technology company. The company name is always "HONK" (all caps) — never "HONC", "HAWK", or any other variation. HONK agents are the internal operations staff who manage jobs. Given a voice transcript of a product intake, extract and structure the information into a JSON object with exactly these fields:
 
 - title: A short (5-8 word) summary title. STRICT sentence case: only the very first word is capitalised. All other words must be lowercase EXCEPT acronyms that are written in ALL CAPS (e.g. HAWK, HONK, ETA). Wrong: "Real-Time ETA Tracking for Motorists". Right: "Real-time ETA tracking for motorists".
 - shortDescription: An alternate title that works together with the main title — not a summary of it. The title and shortDescription should complement each other: the title names the feature or fix, the shortDescription adds the "so that" or "because" context that the title omits. Do NOT restate the title or repeat its words. Think of them as a headline + subheadline pair that together tell the full story. STRICT LIMIT: must be 50 characters or fewer. Count every character including spaces. If your draft exceeds 50 characters, shorten it until it fits.
