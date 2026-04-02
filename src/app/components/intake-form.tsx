@@ -384,7 +384,7 @@ export default function IntakeForm({ data, onChange, audioBlob, onStartOver, onS
         const fd = new FormData();
         fd.append("key", key);
         fd.append("audio", audioBlob, filename);
-        await fetch("/api/jira/attach", { method: "POST", body: fd });
+        await fetch("/api/jira-attach", { method: "POST", body: fd });
       }
 
       for (const res of data.resources) {
@@ -394,7 +394,7 @@ export default function IntakeForm({ data, onChange, audioBlob, onStartOver, onS
             const fd = new FormData();
             fd.append("key", key);
             fd.append("audio", file, file.name);
-            await fetch("/api/jira/attach", { method: "POST", body: fd });
+            await fetch("/api/jira-attach", { method: "POST", body: fd });
           }
         }
       }
