@@ -44,8 +44,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!jiraRes.ok) {
     const error = await jiraRes.text();
-    console.error("Jira API error", { status: jiraRes.status, error });
-    return res.status(jiraRes.status).json({ error: "Failed to create Jira issue", detail: error });
+    console.error("Jira API error", { status: jiraRes.status, url: `https://${siteUrl}/rest/api/3/issue`, error });
+    return res.status(500).json({ error: `Jira returned ${jiraRes.status} — check ATLASSIAN_SITE_URL (currently: ${siteUrl})`, detail: error });
   }
 
   const created = await jiraRes.json() as { key: string; id: string };
