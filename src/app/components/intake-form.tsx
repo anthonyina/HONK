@@ -442,7 +442,7 @@ export default function IntakeForm({ data, onChange, audioBlob, onStartOver, onS
                 />
               </Stack>
             ) : (
-              <Box>
+              <Box onClick={() => toggle("title")} sx={{ cursor: "pointer" }}>
                 <Typography variant="h3" fontWeight={700} sx={{ letterSpacing: "-0.01em" }}>
                   {data.title || "Product Intake"}
                 </Typography>
