@@ -11,7 +11,37 @@ import IntakeForm from "@/app/components/intake-form";
 import { EMPTY_FORM, type IntakeFormData } from "@/app/lib/intake-types";
 import { useUploadAudio } from "@/app/lib/upload-audio-context";
 
-type AppState = "idle" | "recording" | "processing" | "form" | "success";
+type AppState = "idle" | "countdown" | "recording" | "processing" | "form" | "success";
+
+function playRecordingSound(type: "start" | "stop") {
+  try {
+    const ctx = new AudioContext();
+    const gain = ctx.createGain();
+    gain.connect(ctx.destination);
+
+    const notes = type === "start"
+      ? [{ freq: 880, start: 0, dur: 0.08 }, { freq: 1320, start: 0.1, dur: 0.1 }]
+      : [{ freq: 1320, start: 0, dur: 0.08 }, { freq: 880, start: 0.1, dur: 0.1 }];
+
+    notes.forEach(({ freq, start, dur }) => {
+      const osc = ctx.createOscillator();
+      const env = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      env.gain.setValueAtTime(0, ctx.currentTime + start);
+      env.gain.linearRampToValueAtTime(0.18, ctx.currentTime + start + 0.01);
+      env.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
+      osc.connect(env);
+      env.connect(ctx.destination);
+      osc.start(ctx.currentTime + start);
+      osc.stop(ctx.currentTime + start + dur);
+    });
+
+    setTimeout(() => ctx.close(), 600);
+  } catch {
+    // silently ignore if AudioContext unavailable
+  }
+}
 
 function MicIcon({ size = 20 }: { size?: number }) {
   return (
@@ -35,6 +65,7 @@ export default function Page() {
   const [appState, setAppState] = useState<AppState>("idle");
   const [formData, setFormData] = useState<IntakeFormData>(EMPTY_FORM);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [countdown, setCountdown] = useState(3);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [processingLabel, setProcessingLabel] = useState("Transcribing your recording…");
   const [jiraKey, setJiraKey] = useState<string | null>(null);
@@ -77,10 +108,28 @@ export default function Page() {
       };
 
       mediaRecorderRef.current = recorder;
+
+      // Countdown 3 → 2 → 1 then start
+      setCountdown(3);
+      setAppState("countdown");
+
+      await new Promise<void>((resolve) => {
+        let n = 3;
+        const tick = setInterval(() => {
+          n -= 1;
+          if (n <= 0) {
+            clearInterval(tick);
+            resolve();
+          } else {
+            setCountdown(n);
+          }
+        }, 1000);
+      });
+
       recorder.start(250);
+      playRecordingSound("start");
       setRecordingSeconds(0);
       setAppState("recording");
-
       timerRef.current = setInterval(() => setRecordingSeconds((s) => s + 1), 1000);
     } catch {
       alert("Microphone access is required to record. Please allow microphone access and try again.");
@@ -89,6 +138,7 @@ export default function Page() {
 
   const stopRecording = () => {
     if (timerRef.current) clearInterval(timerRef.current);
+    playRecordingSound("stop");
     mediaRecorderRef.current?.stop();
     setAppState("processing");
   };
@@ -163,6 +213,30 @@ export default function Page() {
       <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 128px)", gap: 3 }}>
         <CircularProgress size={48} />
         <Typography color="text.secondary">{processingLabel}</Typography>
+      </Box>
+    );
+  }
+
+  if (appState === "countdown") {
+    return (
+      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 128px)" }}>
+        <Typography
+          variant="h1"
+          sx={{
+            fontWeight: 700,
+            fontSize: "8rem",
+            lineHeight: 1,
+            color: "primary.main",
+            animation: "countPop 0.3s ease-out",
+            "@keyframes countPop": {
+              "0%": { transform: "scale(1.4)", opacity: 0 },
+              "100%": { transform: "scale(1)", opacity: 1 },
+            },
+          }}
+          key={countdown}
+        >
+          {countdown}
+        </Typography>
       </Box>
     );
   }

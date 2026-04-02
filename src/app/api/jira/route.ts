@@ -112,7 +112,7 @@ function buildDescription(data: IntakeFormData): AdfNode {
       adfBulletList(
         resources.map((r) =>
           r.type === "link"
-            ? [adfBold(r.description + ": "), adfLink(r.url, r.url)]
+            ? [adfLink(r.description, r.url)]
             : [adfText(r.description), adfText(` (attachment: ${r.name})`)]
         )
       )
