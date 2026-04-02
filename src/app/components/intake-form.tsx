@@ -368,7 +368,7 @@ export default function IntakeForm({ data, onChange, audioBlob, onStartOver, onS
     setSubmitting(true);
     setSubmitError(null);
     try {
-      const res = await fetch("/api/jira", {
+      const res = await fetch("/api/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
