@@ -1,9 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import "server-only";
+import type { NextApiRequest, NextApiResponse } from "next";
 import type { IntakeFormData } from "@/app/lib/intake-types";
 import { buildDescription } from "@/app/lib/jira-adf";
-
-export const dynamic = "force-dynamic";
 
 function getAuthHeader() {
   const email = process.env.ATLASSIAN_EMAIL!;
@@ -11,18 +8,17 @@ function getAuthHeader() {
   return `Basic ${Buffer.from(`${email}:${token}`).toString("base64")}`;
 }
 
-export async function POST(req: NextRequest) {
-  console.log("[jira] POST handler invoked");
-  const data = (await req.json()) as IntakeFormData;
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
+  const data = req.body as IntakeFormData;
   const siteUrl = process.env.ATLASSIAN_SITE_URL;
   const projectKey = process.env.JIRA_PROJECT_KEY;
 
   if (!siteUrl || !projectKey) {
-    return NextResponse.json(
-      { error: "Jira environment variables not configured" },
-      { status: 500 },
-    );
+    return res.status(500).json({ error: "Jira environment variables not configured" });
   }
 
   const payload = {
@@ -36,7 +32,7 @@ export async function POST(req: NextRequest) {
     },
   };
 
-  const res = await fetch(`https://${siteUrl}/rest/api/3/issue`, {
+  const jiraRes = await fetch(`https://${siteUrl}/rest/api/3/issue`, {
     method: "POST",
     headers: {
       Authorization: getAuthHeader(),
@@ -46,15 +42,12 @@ export async function POST(req: NextRequest) {
     body: JSON.stringify(payload),
   });
 
-  if (!res.ok) {
-    const error = await res.text();
-    console.error("Jira API error", { status: res.status, error });
-    return NextResponse.json(
-      { error: "Failed to create Jira issue", detail: error },
-      { status: res.status },
-    );
+  if (!jiraRes.ok) {
+    const error = await jiraRes.text();
+    console.error("Jira API error", { status: jiraRes.status, error });
+    return res.status(jiraRes.status).json({ error: "Failed to create Jira issue", detail: error });
   }
 
-  const created = await res.json() as { key: string; id: string };
-  return NextResponse.json({ key: created.key, id: created.id });
+  const created = await jiraRes.json() as { key: string; id: string };
+  return res.status(200).json({ key: created.key, id: created.id });
 }
