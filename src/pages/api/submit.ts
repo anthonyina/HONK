@@ -49,5 +49,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const created = await jiraRes.json() as { key: string; id: string };
-  return res.status(200).json({ key: created.key, id: created.id });
+  return res.status(200).json({ key: created.key, id: created.id, url: `https://${siteUrl}/browse/${created.key}` });
 }

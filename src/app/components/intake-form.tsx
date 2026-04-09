@@ -327,7 +327,7 @@ type Props = {
   onChange: (data: IntakeFormData) => void;
   audioBlob?: Blob | null;
   onStartOver: () => void;
-  onSubmitSuccess?: (jiraKey: string) => void;
+  onSubmitSuccess?: (jiraKey: string, jiraUrl?: string) => void;
 };
 
 const riskColor: Record<string, "success" | "warning" | "error"> = {
@@ -377,7 +377,7 @@ export default function IntakeForm({ data, onChange, audioBlob, onStartOver, onS
         const { error } = (await res.json()) as { error: string };
         throw new Error(error);
       }
-      const { key } = (await res.json()) as { key: string };
+      const { key, url } = (await res.json()) as { key: string; url?: string };
 
       if (audioBlob) {
         const filename = audioBlob instanceof File ? audioBlob.name : "recording.webm";
@@ -399,7 +399,7 @@ export default function IntakeForm({ data, onChange, audioBlob, onStartOver, onS
         }
       }
 
-      onSubmitSuccess?.(key);
+      onSubmitSuccess?.(key, url);
     } catch (e) {
       setSubmitError(e instanceof Error ? e.message : "Submission failed");
     } finally {

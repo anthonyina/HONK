@@ -3,15 +3,24 @@
 import { useEffect, useRef, useState } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import ButtonGroup from "@mui/material/ButtonGroup";
 import CircularProgress from "@mui/material/CircularProgress";
 import Container from "@mui/material/Container";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import ContentPasteIcon from "@mui/icons-material/ContentPaste";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
 import IntakeForm from "@/app/components/intake-form";
 import { EMPTY_FORM, type IntakeFormData } from "@/app/lib/intake-types";
 import { useUploadAudio } from "@/app/lib/upload-audio-context";
 
-type AppState = "idle" | "countdown" | "recording" | "processing" | "form" | "success";
+type AppState = "idle" | "countdown" | "recording" | "processing" | "paste" | "form" | "success";
 
 function playRecordingSound(type: "start" | "stop") {
   try {
@@ -69,6 +78,11 @@ export default function Page() {
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [processingLabel, setProcessingLabel] = useState("Transcribing your recording…");
   const [jiraKey, setJiraKey] = useState<string | null>(null);
+  const [jiraUrl, setJiraUrl] = useState<string | null>(null);
+  const [pasteText, setPasteText] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const anchorRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { setHandler } = useUploadAudio();
 
   useEffect(() => {
@@ -181,15 +195,71 @@ export default function Page() {
     }
   };
 
+  const processText = async (text: string) => {
+    try {
+      setProcessingLabel("Structuring your intake with AI…");
+      const structureRes = await fetch("/api/structure", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ transcript: text }),
+      });
+      const structureJson = await structureRes.json() as IntakeFormData & { error?: string };
+      if (!structureRes.ok) {
+        throw new Error(structureJson.error ?? "Structuring failed");
+      }
+      setFormData(structureJson);
+      setAudioBlob(null);
+      setAppState("form");
+    } catch (err) {
+      console.error("[intake] processText failed:", err);
+      alert("Something went wrong processing your text. Please try again.");
+      setAppState("idle");
+    }
+  };
+
+  const handleFileUpload = async (file: File) => {
+    const isAudio =
+      file.type.startsWith("audio/") ||
+      /\.(mp3|m4a|wav|webm|ogg|flac|aac|wma)$/i.test(file.name);
+
+    if (isAudio) {
+      setAppState("processing");
+      void processRecording(file);
+      return;
+    }
+
+    setProcessingLabel("Extracting content from your file…");
+    setAppState("processing");
+
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/extract-text", { method: "POST", body: fd });
+      const json = (await res.json()) as { text?: string; error?: string };
+      if (!res.ok || !json.text?.trim()) {
+        throw new Error(json.error ?? "Could not extract text from this file");
+      }
+      await processText(json.text);
+    } catch (err) {
+      console.error("[intake] handleFileUpload failed:", err);
+      alert(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong processing your file. Please try again.",
+      );
+      setAppState("idle");
+    }
+  };
+
   if (appState === "success") {
     return (
       <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 128px)", gap: 3, textAlign: "center", px: 3 }}>
         <Typography variant="h4" fontWeight={700}>You&rsquo;re all set.</Typography>
         <Typography color="text.secondary">
           Your intake has been submitted to Jira Product Discovery
-          {jiraKey ? <> as <Box component="span" sx={{ color: "primary.main", fontWeight: 600 }}>{jiraKey}</Box></> : ""}.
+          {jiraKey ? <> as <Box component="a" href={jiraUrl || "#"} target="_blank" rel="noopener noreferrer" sx={{ color: "primary.main", fontWeight: 600, textDecoration: "none", "&:hover": { textDecoration: "underline" } }}>{jiraKey}</Box></> : ""}.
         </Typography>
-        <Button variant="outlined" onClick={() => { setFormData(EMPTY_FORM); setJiraKey(null); setAppState("idle"); }} sx={{ mt: 1, borderRadius: 999, px: 4 }}>
+        <Button variant="outlined" onClick={() => { setFormData(EMPTY_FORM); setJiraKey(null); setJiraUrl(null); setAppState("idle"); }} sx={{ mt: 1, borderRadius: 999, px: 4 }}>
           Submit another
         </Button>
       </Box>
@@ -203,7 +273,7 @@ export default function Page() {
         onChange={setFormData}
         audioBlob={audioBlob}
         onStartOver={() => { setFormData(EMPTY_FORM); setAudioBlob(null); setAppState("idle"); }}
-        onSubmitSuccess={(key) => { setJiraKey(key); setAppState("success"); }}
+        onSubmitSuccess={(key, url) => { setJiraKey(key); setJiraUrl(url ?? null); setAppState("success"); }}
       />
     );
   }
@@ -290,6 +360,61 @@ export default function Page() {
     );
   }
 
+  if (appState === "paste") {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "calc(100vh - 128px)",
+          px: 3,
+        }}
+      >
+        <Container maxWidth="sm">
+          <Typography variant="h5" sx={{ fontWeight: 600, mb: 3, textAlign: "center" }}>
+            Paste your intake
+          </Typography>
+          <TextField
+            multiline
+            minRows={10}
+            maxRows={20}
+            fullWidth
+            placeholder="Paste your product intake text here…"
+            value={pasteText}
+            onChange={(e) => setPasteText(e.target.value)}
+            autoFocus
+          />
+          <Stack direction="row" spacing={2} justifyContent="flex-end" sx={{ mt: 3 }}>
+            <Button
+              variant="outlined"
+              onClick={() => {
+                setPasteText("");
+                setAppState("idle");
+              }}
+              sx={{ borderRadius: 999, px: 4 }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              disabled={!pasteText.trim()}
+              onClick={() => {
+                setProcessingLabel("Structuring your intake with AI…");
+                setAppState("processing");
+                void processText(pasteText.trim());
+              }}
+              sx={{ borderRadius: 999, px: 4 }}
+            >
+              Submit
+            </Button>
+          </Stack>
+        </Container>
+      </Box>
+    );
+  }
+
   // idle
   return (
     <Box
@@ -318,15 +443,89 @@ export default function Page() {
         </Typography>
 
         <Stack direction="row" spacing={2} justifyContent="center">
-          <Button
+          <ButtonGroup
             variant="contained"
-            size="large"
-            startIcon={<MicIcon />}
-            onClick={startRecording}
-            sx={{ px: 4, py: 1.5, fontSize: "1rem", borderRadius: 999 }}
+            ref={anchorRef}
+            sx={{
+              borderRadius: 999,
+              background: "linear-gradient(135deg, #8F09F9 0%, #FF814F 100%)",
+              "&:hover": {
+                background: "linear-gradient(135deg, #7a08d8 0%, #e5703f 100%)",
+              },
+              "& .MuiButtonGroup-grouped": {
+                background: "transparent !important",
+                boxShadow: "none",
+                "&:hover": { background: "rgba(0, 0, 0, 0.12) !important" },
+              },
+              "& .MuiButtonGroup-grouped:first-of-type": {
+                borderRadius: "999px 0 0 999px",
+              },
+              "& .MuiButtonGroup-grouped:last-of-type": {
+                borderRadius: "0 999px 999px 0",
+              },
+              "& .MuiButtonGroup-grouped:not(:last-of-type)": {
+                borderColor: "rgba(255, 255, 255, 0.3)",
+              },
+            }}
           >
-            Record
-          </Button>
+            <Button
+              size="large"
+              startIcon={<MicIcon />}
+              onClick={startRecording}
+              sx={{ px: 4, py: 1.5, fontSize: "1rem" }}
+            >
+              Record
+            </Button>
+            <Button
+              size="small"
+              onClick={() => setMenuOpen((prev) => !prev)}
+              sx={{ px: 1 }}
+            >
+              <ArrowDropDownIcon />
+            </Button>
+          </ButtonGroup>
+          <Menu
+            anchorEl={anchorRef.current}
+            open={menuOpen}
+            onClose={() => setMenuOpen(false)}
+            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+            transformOrigin={{ vertical: "top", horizontal: "right" }}
+          >
+            <MenuItem
+              onClick={() => {
+                setMenuOpen(false);
+                fileInputRef.current?.click();
+              }}
+            >
+              <ListItemIcon>
+                <UploadFileIcon />
+              </ListItemIcon>
+              <ListItemText>Upload a file</ListItemText>
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                setMenuOpen(false);
+                setPasteText("");
+                setAppState("paste");
+              }}
+            >
+              <ListItemIcon>
+                <ContentPasteIcon />
+              </ListItemIcon>
+              <ListItemText>Paste text</ListItemText>
+            </MenuItem>
+          </Menu>
+          <input
+            ref={fileInputRef}
+            type="file"
+            hidden
+            accept="audio/*,application/pdf,image/*,.txt,.csv,.md,.rtf"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) void handleFileUpload(file);
+              e.target.value = "";
+            }}
+          />
         </Stack>
       </Container>
     </Box>
