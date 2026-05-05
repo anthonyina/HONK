@@ -48,7 +48,7 @@ export const EMPTY_FORM: IntakeFormData = {
   functionalRequirements: "",
   risks: "",
   goToMarket: "",
-  platform: "",
+  platform: "HONK",
   clientName: "",
   yourName: "",
   timeline: "",
