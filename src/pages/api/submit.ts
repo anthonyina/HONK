@@ -21,16 +21,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ error: "Jira environment variables not configured" });
   }
 
-  const payload = {
-    fields: {
-      project: { key: projectKey },
-      summary: data.title,
-      issuetype: { name: "Idea" },
-      description: buildDescription(data),
-      customfield_10075: data.shortDescription || undefined,
-      customfield_10071: data.timeline || undefined,
-    },
+  const fields: Record<string, unknown> = {
+    project: { key: projectKey },
+    summary: data.title,
+    issuetype: { name: "Idea" },
+    description: buildDescription(data),
+    customfield_10075: data.shortDescription || undefined,
+    customfield_10071: data.timeline || undefined,
   };
+
+  if (data.clientName) {
+    fields.customfield_10686 = [{ value: data.clientName }];
+  }
+
+  const payload = { fields };
 
   const jiraRes = await fetch(`https://${siteUrl}/rest/api/3/issue`, {
     method: "POST",

@@ -18,7 +18,9 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import InsertLinkIcon from "@mui/icons-material/InsertLink";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs, { type Dayjs } from "dayjs";
-import type { IntakeFormData, MetricDirection, Resource, ResourceFile, ResourceLink, RetentionRisk } from "@/app/lib/intake-types";
+import Autocomplete from "@mui/material/Autocomplete";
+import type { IntakeFormData, MetricDirection, Platform, Resource, ResourceFile, ResourceLink, RetentionRisk } from "@/app/lib/intake-types";
+import { HONK_CLIENTS } from "@/app/lib/intake-types";
 import { useHeaderActions } from "@/app/lib/header-actions-context";
 
 // ── Icons ──────────────────────────────────────────────────────────────────
@@ -666,6 +668,35 @@ export default function IntakeForm({ data, onChange, audioBlob, onStartOver, onS
           onChange={(res) => onChange({ ...data, resources: res })}
           onFilesChange={setResourceFiles}
         />
+
+        {/* ── Platform & Client ── */}
+        <Box>
+          <Typography variant="overline" sx={{ color: "primary.main", fontWeight: 700, letterSpacing: "0.12em", display: "block", mb: 2 }}>
+            Platform & Client
+          </Typography>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+            <ToggleButtonGroup
+              value={data.platform}
+              exclusive
+              onChange={(_e, val: Platform | null) => onChange({ ...data, platform: val ?? "" })}
+              size="small"
+              sx={{ height: 40 }}
+            >
+              <ToggleButton value="CurbsidePRO">CurbsidePRO</ToggleButton>
+              <ToggleButton value="HONK">HONK</ToggleButton>
+            </ToggleButtonGroup>
+            <Autocomplete
+              options={HONK_CLIENTS as unknown as string[]}
+              value={data.clientName || null}
+              onChange={(_e, val) => onChange({ ...data, clientName: val ?? "" })}
+              renderInput={(params) => (
+                <TextField {...params} label="Client (optional)" size="small" />
+              )}
+              freeSolo
+              sx={{ flex: 1 }}
+            />
+          </Stack>
+        </Box>
 
         {/* ── Submitter ── */}
         <Box>

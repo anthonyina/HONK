@@ -99,6 +99,12 @@ export function buildDescription(data: IntakeFormData): AdfNode {
     );
   }
 
+  if (data.platform || data.clientName) {
+    nodes.push(adfHeading("Platform & Client", 2));
+    if (data.platform) nodes.push(adfParagraph(adfText(`Platform: ${data.platform}`)));
+    if (data.clientName) nodes.push(adfParagraph(adfText(`Client: ${data.clientName}`)));
+  }
+
   nodes.push(adfHeading("Submitter", 2));
   const timelineLabel = data.timeline
     ? new Date(data.timeline + "T00:00:00").toLocaleDateString("en-US", { month: "long", year: "numeric" })

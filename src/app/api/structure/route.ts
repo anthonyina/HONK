@@ -29,6 +29,8 @@ Template sentences for reference:
 - functionalRequirements: Key requirements as a bulleted list (- item per line)
 - risks: Any risks as a bulleted list (- item per line)
 - goToMarket: Release/communication notes as a bulleted list (- item per line)
+- platform: "CurbsidePRO" or "HONK" or "" — if the transcript mentions CurbsidePRO, Janus, ARS, technicians, surge campaigns, or the CurbsidePRO dispatch system, use "CurbsidePRO". If it mentions HONK, Rescue, motorists, the HONK consumer app, mobile web, or insurance clients, use "HONK". Use "" if unclear.
+- clientName: The specific client/account name if mentioned (e.g. "Farmers Roadside", "USAA", "Waymo", "Sixt Rent a Car LLC", "NJM Insurance", "Wheels"). Use the official company name. Use "" if no specific client is mentioned.
 - yourName: ""
 - timeline: ""
 
