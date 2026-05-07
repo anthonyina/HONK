@@ -826,22 +826,24 @@ export default function IntakeForm({ data, onChange, audioBlob, onStartOver, onS
 
       </Stack>
 
-      <Dialog open={impactInfoOpen} onClose={() => setImpactInfoOpen(false)} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ fontWeight: 700 }}>Impact Level Definitions</DialogTitle>
+      <Dialog open={impactInfoOpen} onClose={() => setImpactInfoOpen(false)} maxWidth="md" fullWidth
+        PaperProps={{ sx: { bgcolor: "#fff", color: "#1e293b" } }}
+      >
+        <DialogTitle sx={{ fontWeight: 700, color: "#1e293b" }}>Impact Level Definitions</DialogTitle>
         <DialogContent>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
             <thead>
               <tr>
-                <th style={{ textAlign: "left", padding: "8px 12px", borderBottom: "2px solid #e5e7eb", width: 100 }}>Level</th>
-                <th style={{ textAlign: "left", padding: "8px 12px", borderBottom: "2px solid #e5e7eb" }}>Definition</th>
-                <th style={{ textAlign: "left", padding: "8px 12px", borderBottom: "2px solid #e5e7eb" }}>Examples</th>
+                <th style={{ textAlign: "left", padding: "8px 12px", borderBottom: "2px solid #e5e7eb", width: 100, color: "#1e293b" }}>Level</th>
+                <th style={{ textAlign: "left", padding: "8px 12px", borderBottom: "2px solid #e5e7eb", color: "#1e293b" }}>Definition</th>
+                <th style={{ textAlign: "left", padding: "8px 12px", borderBottom: "2px solid #e5e7eb", color: "#1e293b" }}>Examples</th>
               </tr>
             </thead>
             <tbody>
               {IMPACT_DEFINITIONS.map((d) => (
                 <tr key={d.level}>
-                  <td style={{ padding: "8px 12px", borderBottom: "1px solid #e5e7eb", fontWeight: 600 }}>{d.level}</td>
-                  <td style={{ padding: "8px 12px", borderBottom: "1px solid #e5e7eb" }}>{d.definition}</td>
+                  <td style={{ padding: "8px 12px", borderBottom: "1px solid #e5e7eb", fontWeight: 600, color: "#1e293b" }}>{d.level}</td>
+                  <td style={{ padding: "8px 12px", borderBottom: "1px solid #e5e7eb", color: "#334155" }}>{d.definition}</td>
                   <td style={{ padding: "8px 12px", borderBottom: "1px solid #e5e7eb", color: "#64748b", fontStyle: "italic" }}>{d.examples}</td>
                 </tr>
               ))}

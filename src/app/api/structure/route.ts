@@ -25,7 +25,7 @@ Template sentences for reference:
 - incrementVolume: Estimate of incremental job volume or usage
 - contractValue: Any revenue or contract value mentioned
 - retentionRisk: "Low", "Medium", or "High"
-- impact: "Very Low", "Low", "Medium", "High", or "Very High". Assess based on the transcript: "Very High" = $500K+ annual impact or tied to client contract renewal with executive visibility. "High" = $100K-$500K or client raised as pain point. "Medium" = $25K-$100K or operational efficiency for multiple people. "Low" = <$25K or single-client retention ask. "Very Low" = quality of life, no measurable business impact. Use "" if not enough info.
+- impact: Always return "" — the user must select this manually.
 - additionalBackground: Any context that doesn't fit above
 - functionalRequirements: Key requirements as a bulleted list (- item per line)
 - risks: Any risks as a bulleted list (- item per line)

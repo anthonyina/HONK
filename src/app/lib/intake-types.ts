@@ -91,7 +91,7 @@ export const DEMO_DATA: IntakeFormData = {
   incrementVolume: "~200 additional jobs/month driven by improved NPS and word-of-mouth referrals",
   contractValue: "Potential $50K ARR uplift — AAA has flagged this as a renewal requirement",
   retentionRisk: "High",
-  impact: "High",
+  impact: "",
   additionalBackground:
     "Three enterprise clients raised this in Q1 QBRs, including AAA who listed it as a blocker for renewal. NPS verbatims consistently cite 'not knowing where my driver is' as the top frustration.",
   functionalRequirements:
