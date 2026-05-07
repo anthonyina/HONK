@@ -64,6 +64,7 @@ export function buildDescription(data: IntakeFormData): AdfNode {
   nodes.push(adfParagraph(adfText(`Increment volume: ${data.incrementVolume}`)));
   nodes.push(adfParagraph(adfText(`Contract value: ${data.contractValue}`)));
   nodes.push(adfParagraph(adfText(`Client retention risk: ${data.retentionRisk}`)));
+  if (data.impact) nodes.push(adfParagraph(adfText(`Impact: ${data.impact}`)));
 
   if (data.additionalBackground) {
     nodes.push(adfHeading("Additional Background", 2));

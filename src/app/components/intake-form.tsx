@@ -19,7 +19,12 @@ import InsertLinkIcon from "@mui/icons-material/InsertLink";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs, { type Dayjs } from "dayjs";
 import Autocomplete from "@mui/material/Autocomplete";
-import type { IntakeFormData, MetricDirection, Platform, Resource, ResourceFile, ResourceLink, RetentionRisk } from "@/app/lib/intake-types";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import MenuItem from "@mui/material/MenuItem";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import type { IntakeFormData, Impact, MetricDirection, Platform, Resource, ResourceFile, ResourceLink, RetentionRisk } from "@/app/lib/intake-types";
 import { HONK_CLIENTS } from "@/app/lib/intake-types";
 import { useHeaderActions } from "@/app/lib/header-actions-context";
 
@@ -338,10 +343,27 @@ const riskColor: Record<string, "success" | "warning" | "error"> = {
   High: "error",
 };
 
+const impactColor: Record<string, "default" | "success" | "warning" | "error" | "info"> = {
+  "Very Low": "default",
+  Low: "info",
+  Medium: "warning",
+  High: "error",
+  "Very High": "error",
+};
+
+const IMPACT_DEFINITIONS: { level: string; definition: string; examples: string }[] = [
+  { level: "Very High", definition: "$500K+ annual impact, or a named client has explicitly tied it to contract renewal or expansion. Executive visibility.", examples: "Waymo highway launch, Farmers escalation (Chief Claims Officer involved), FleetNet API ($726K revenue)" },
+  { level: "High", definition: "$100K-$500K annual impact, or a client has raised it as a pain point with account team. Competitive gap.", examples: "Storage compliance (USAA disputes), Job Alerts (Wheels diverted 33% volume), phone call intake for retail" },
+  { level: "Medium", definition: "$25K-$100K annual impact, or operational efficiency gain that reduces manual work for multiple people.", examples: "Flexible arrival window (reduces ops rescheduling), wheel lock questions in intake, FIMC 4010 enforcement" },
+  { level: "Low", definition: "<$25K annual impact, or a single-client retention ask with no escalation. Minor friction reduction.", examples: "Individual client config change, single-client billing tweak, retention feature request without contract risk" },
+  { level: "Very Low", definition: "Quality of life improvement. No measurable revenue, cost, or risk impact. Nice to have.", examples: "UI polish, label changes, internal tooling cosmetics" },
+];
+
 export default function IntakeForm({ data, onChange, audioBlob, onStartOver, onSubmitSuccess }: Props) {
   const [editing, setEditing] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [impactInfoOpen, setImpactInfoOpen] = useState(false);
   const [resourceFiles, setResourceFiles] = useState<Map<string, File>>(new Map());
   const { setRightAction } = useHeaderActions();
 
@@ -363,6 +385,10 @@ export default function IntakeForm({ data, onChange, audioBlob, onStartOver, onS
       onChange({ ...data, [field]: e.target.value });
 
   const handleSubmit = async () => {
+    if (!data.impact) {
+      setSubmitError("Please select an Impact level before submitting.");
+      return;
+    }
     if (!data.yourName || !data.timeline) {
       setSubmitError("Please fill in your name and desired timeline before submitting.");
       return;
@@ -550,6 +576,22 @@ export default function IntakeForm({ data, onChange, audioBlob, onStartOver, onS
                   </Typography>
                 )}
               </Stack>
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Typography variant="body2" color={data.impact ? "text.disabled" : "error"} sx={{ minWidth: 160, flexShrink: 0 }}>
+                  Impact *
+                </Typography>
+                {data.impact ? (
+                  <Chip
+                    label={data.impact}
+                    size="small"
+                    color={impactColor[data.impact] ?? "default"}
+                  />
+                ) : (
+                  <Typography variant="body2" color="error" sx={{ fontStyle: "italic" }}>
+                    Required
+                  </Typography>
+                )}
+              </Stack>
             </Stack>
           }
           edit={
@@ -570,6 +612,33 @@ export default function IntakeForm({ data, onChange, audioBlob, onStartOver, onS
                   <ToggleButton value="Medium">Medium</ToggleButton>
                   <ToggleButton value="High">High</ToggleButton>
                 </ToggleButtonGroup>
+              </Box>
+              <Box>
+                <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 1 }}>
+                  <Typography variant="caption" color="text.secondary">
+                    Impact *
+                  </Typography>
+                  <IconButton size="small" onClick={() => setImpactInfoOpen(true)} sx={{ p: 0.25 }}>
+                    <InfoOutlinedIcon sx={{ fontSize: 16, color: "text.disabled" }} />
+                  </IconButton>
+                </Stack>
+                <TextField
+                  select
+                  value={data.impact}
+                  onChange={(e) => onChange({ ...data, impact: e.target.value as Impact })}
+                  size="small"
+                  fullWidth
+                  required
+                  error={!data.impact}
+                  helperText={!data.impact ? "Required" : ""}
+                  placeholder="Select impact level"
+                >
+                  <MenuItem value="Very High">Very High</MenuItem>
+                  <MenuItem value="High">High</MenuItem>
+                  <MenuItem value="Medium">Medium</MenuItem>
+                  <MenuItem value="Low">Low</MenuItem>
+                  <MenuItem value="Very Low">Very Low</MenuItem>
+                </TextField>
               </Box>
             </Stack>
           }
@@ -756,6 +825,31 @@ export default function IntakeForm({ data, onChange, audioBlob, onStartOver, onS
         </Box>
 
       </Stack>
+
+      <Dialog open={impactInfoOpen} onClose={() => setImpactInfoOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle sx={{ fontWeight: 700 }}>Impact Level Definitions</DialogTitle>
+        <DialogContent>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+            <thead>
+              <tr>
+                <th style={{ textAlign: "left", padding: "8px 12px", borderBottom: "2px solid #e5e7eb", width: 100 }}>Level</th>
+                <th style={{ textAlign: "left", padding: "8px 12px", borderBottom: "2px solid #e5e7eb" }}>Definition</th>
+                <th style={{ textAlign: "left", padding: "8px 12px", borderBottom: "2px solid #e5e7eb" }}>Examples</th>
+              </tr>
+            </thead>
+            <tbody>
+              {IMPACT_DEFINITIONS.map((d) => (
+                <tr key={d.level}>
+                  <td style={{ padding: "8px 12px", borderBottom: "1px solid #e5e7eb", fontWeight: 600 }}>{d.level}</td>
+                  <td style={{ padding: "8px 12px", borderBottom: "1px solid #e5e7eb" }}>{d.definition}</td>
+                  <td style={{ padding: "8px 12px", borderBottom: "1px solid #e5e7eb", color: "#64748b", fontStyle: "italic" }}>{d.examples}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </DialogContent>
+      </Dialog>
+
     </Container>
   );
 }

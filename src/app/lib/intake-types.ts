@@ -6,6 +6,7 @@ export type ResourceFile = { id: string; type: "file"; name: string; description
 export type Resource = ResourceLink | ResourceFile;
 
 export type Platform = "CurbsidePRO" | "HONK" | "";
+export type Impact = "Very Low" | "Low" | "Medium" | "High" | "Very High" | "";
 
 export type IntakeFormData = {
   title: string;
@@ -20,6 +21,7 @@ export type IntakeFormData = {
   incrementVolume: string;
   contractValue: string;
   retentionRisk: RetentionRisk;
+  impact: Impact;
   additionalBackground: string;
   functionalRequirements: string;
   risks: string;
@@ -44,6 +46,7 @@ export const EMPTY_FORM: IntakeFormData = {
   incrementVolume: "",
   contractValue: "",
   retentionRisk: "",
+  impact: "",
   additionalBackground: "",
   functionalRequirements: "",
   risks: "",
@@ -88,6 +91,7 @@ export const DEMO_DATA: IntakeFormData = {
   incrementVolume: "~200 additional jobs/month driven by improved NPS and word-of-mouth referrals",
   contractValue: "Potential $50K ARR uplift — AAA has flagged this as a renewal requirement",
   retentionRisk: "High",
+  impact: "High",
   additionalBackground:
     "Three enterprise clients raised this in Q1 QBRs, including AAA who listed it as a blocker for renewal. NPS verbatims consistently cite 'not knowing where my driver is' as the top frustration.",
   functionalRequirements:
