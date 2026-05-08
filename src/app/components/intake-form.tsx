@@ -672,31 +672,28 @@ export default function IntakeForm({ data, onChange, audioBlob, onStartOver, onS
               freeSolo
               sx={{ flex: 1 }}
             />
-            <TextField
-              select
-              label={
-                <Stack direction="row" alignItems="center" spacing={0.5} component="span">
-                  <span>Impact *</span>
-                  <InfoOutlinedIcon
-                    sx={{ fontSize: 14, color: "text.disabled", cursor: "pointer" }}
-                    onClick={(e: React.MouseEvent) => { e.stopPropagation(); setImpactInfoOpen(true); }}
-                  />
-                </Stack>
-              }
-              value={data.impact}
-              onChange={(e) => onChange({ ...data, impact: e.target.value as Impact })}
-              size="small"
-              required
-              error={!data.impact}
-              helperText={!data.impact ? "Required" : ""}
-              sx={{ minWidth: 150 }}
-            >
-              <MenuItem value="Very High">Very High</MenuItem>
-              <MenuItem value="High">High</MenuItem>
-              <MenuItem value="Medium">Medium</MenuItem>
-              <MenuItem value="Low">Low</MenuItem>
-              <MenuItem value="Very Low">Very Low</MenuItem>
-            </TextField>
+            <Stack direction="row" spacing={1} alignItems="flex-start">
+              <TextField
+                select
+                label="Impact *"
+                value={data.impact}
+                onChange={(e) => onChange({ ...data, impact: e.target.value as Impact })}
+                size="small"
+                required
+                error={!data.impact}
+                helperText={!data.impact ? "Required" : ""}
+                sx={{ minWidth: 150 }}
+              >
+                <MenuItem value="Very High">Very High</MenuItem>
+                <MenuItem value="High">High</MenuItem>
+                <MenuItem value="Medium">Medium</MenuItem>
+                <MenuItem value="Low">Low</MenuItem>
+                <MenuItem value="Very Low">Very Low</MenuItem>
+              </TextField>
+              <IconButton onClick={() => setImpactInfoOpen(true)} sx={{ mt: 0.5 }}>
+                <InfoOutlinedIcon />
+              </IconButton>
+            </Stack>
           </Stack>
         </Box>
 
