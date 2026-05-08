@@ -551,98 +551,6 @@ export default function IntakeForm({ data, onChange, audioBlob, onStartOver, onS
           }
         />
 
-        {/* ── Value ── */}
-        <Section
-          label="Value"
-          editing={is("value")}
-          onToggle={() => toggle("value")}
-          view={
-            <Stack spacing={0.5}>
-              <LabeledRow label="Increment volume" value={data.incrementVolume} />
-              <LabeledRow label="Contract value" value={data.contractValue} />
-              <Stack direction="row" spacing={2} alignItems="center">
-                <Typography variant="body2" color="text.disabled" sx={{ minWidth: 160, flexShrink: 0 }}>
-                  Retention risk
-                </Typography>
-                {data.retentionRisk ? (
-                  <Chip
-                    label={data.retentionRisk}
-                    size="small"
-                    color={riskColor[data.retentionRisk] ?? "default"}
-                  />
-                ) : (
-                  <Typography variant="body2" color="text.disabled" sx={{ fontStyle: "italic" }}>
-                    Not specified
-                  </Typography>
-                )}
-              </Stack>
-              <Stack direction="row" spacing={2} alignItems="center">
-                <Typography variant="body2" color={data.impact ? "text.disabled" : "error"} sx={{ minWidth: 160, flexShrink: 0 }}>
-                  Impact *
-                </Typography>
-                {data.impact ? (
-                  <Chip
-                    label={data.impact}
-                    size="small"
-                    color={impactColor[data.impact] ?? "default"}
-                  />
-                ) : (
-                  <Typography variant="body2" color="error" sx={{ fontStyle: "italic" }}>
-                    Required
-                  </Typography>
-                )}
-              </Stack>
-            </Stack>
-          }
-          edit={
-            <Stack spacing={2}>
-              <TextField label="Increment volume (jobs gained)" value={data.incrementVolume} onChange={set("incrementVolume")} fullWidth size="small" />
-              <TextField label="Contract value (revenue / GP)" value={data.contractValue} onChange={set("contractValue")} fullWidth size="small" />
-              <Box>
-                <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 1 }}>
-                  Client retention risk
-                </Typography>
-                <ToggleButtonGroup
-                  exclusive
-                  value={data.retentionRisk}
-                  onChange={(_, v) => v && onChange({ ...data, retentionRisk: v as RetentionRisk })}
-                  size="small"
-                >
-                  <ToggleButton value="Low">Low</ToggleButton>
-                  <ToggleButton value="Medium">Medium</ToggleButton>
-                  <ToggleButton value="High">High</ToggleButton>
-                </ToggleButtonGroup>
-              </Box>
-              <Box>
-                <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 1 }}>
-                  <Typography variant="caption" color="text.secondary">
-                    Impact *
-                  </Typography>
-                  <IconButton size="small" onClick={() => setImpactInfoOpen(true)} sx={{ p: 0.25 }}>
-                    <InfoOutlinedIcon sx={{ fontSize: 16, color: "text.disabled" }} />
-                  </IconButton>
-                </Stack>
-                <TextField
-                  select
-                  value={data.impact}
-                  onChange={(e) => onChange({ ...data, impact: e.target.value as Impact })}
-                  size="small"
-                  fullWidth
-                  required
-                  error={!data.impact}
-                  helperText={!data.impact ? "Required" : ""}
-                  placeholder="Select impact level"
-                >
-                  <MenuItem value="Very High">Very High</MenuItem>
-                  <MenuItem value="High">High</MenuItem>
-                  <MenuItem value="Medium">Medium</MenuItem>
-                  <MenuItem value="Low">Low</MenuItem>
-                  <MenuItem value="Very Low">Very Low</MenuItem>
-                </TextField>
-              </Box>
-            </Stack>
-          }
-        />
 
         {/* ── Additional Background ── */}
         <Section
@@ -738,12 +646,12 @@ export default function IntakeForm({ data, onChange, audioBlob, onStartOver, onS
           onFilesChange={setResourceFiles}
         />
 
-        {/* ── Platform & Client ── */}
+        {/* ── Platform, Client & Impact ── */}
         <Box>
           <Typography variant="overline" sx={{ color: "primary.main", fontWeight: 700, letterSpacing: "0.12em", display: "block", mb: 2 }}>
-            Platform & Client
+            Platform, Client & Impact
           </Typography>
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems={{ sm: "flex-start" }}>
             <ToggleButtonGroup
               value={data.platform}
               exclusive
@@ -764,6 +672,31 @@ export default function IntakeForm({ data, onChange, audioBlob, onStartOver, onS
               freeSolo
               sx={{ flex: 1 }}
             />
+            <TextField
+              select
+              label={
+                <Stack direction="row" alignItems="center" spacing={0.5} component="span">
+                  <span>Impact *</span>
+                  <InfoOutlinedIcon
+                    sx={{ fontSize: 14, color: "text.disabled", cursor: "pointer" }}
+                    onClick={(e: React.MouseEvent) => { e.stopPropagation(); setImpactInfoOpen(true); }}
+                  />
+                </Stack>
+              }
+              value={data.impact}
+              onChange={(e) => onChange({ ...data, impact: e.target.value as Impact })}
+              size="small"
+              required
+              error={!data.impact}
+              helperText={!data.impact ? "Required" : ""}
+              sx={{ minWidth: 150 }}
+            >
+              <MenuItem value="Very High">Very High</MenuItem>
+              <MenuItem value="High">High</MenuItem>
+              <MenuItem value="Medium">Medium</MenuItem>
+              <MenuItem value="Low">Low</MenuItem>
+              <MenuItem value="Very Low">Very Low</MenuItem>
+            </TextField>
           </Stack>
         </Box>
 
