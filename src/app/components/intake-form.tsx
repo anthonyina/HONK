@@ -14,6 +14,7 @@ import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Typography from "@mui/material/Typography";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
+import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
 import InsertLinkIcon from "@mui/icons-material/InsertLink";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -759,7 +760,12 @@ export default function IntakeForm({ data, onChange, audioBlob, onStartOver, onS
       <Dialog open={impactInfoOpen} onClose={() => setImpactInfoOpen(false)} maxWidth="md" fullWidth
         PaperProps={{ sx: { bgcolor: "#fff", color: "#1e293b" } }}
       >
-        <DialogTitle sx={{ fontWeight: 700, color: "#1e293b" }}>Impact Level Definitions</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 700, color: "#1e293b", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          Impact Level Definitions
+          <IconButton onClick={() => setImpactInfoOpen(false)} size="small" sx={{ color: "#64748b" }}>
+            <CloseIcon sx={{ fontSize: 20 }} />
+          </IconButton>
+        </DialogTitle>
         <DialogContent>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
             <thead>
