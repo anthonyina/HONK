@@ -20,7 +20,7 @@ import IntakeForm from "@/app/components/intake-form";
 import { EMPTY_FORM, type IntakeFormData } from "@/app/lib/intake-types";
 import { useUploadAudio } from "@/app/lib/upload-audio-context";
 
-type AppState = "idle" | "countdown" | "recording" | "processing" | "paste" | "form" | "success";
+type AppState = "idle" | "countdown" | "recording" | "processing" | "paste" | "form" | "success" | "saved";
 
 function playRecordingSound(type: "start" | "stop") {
   try {
@@ -118,7 +118,13 @@ export default function Page() {
 
       recorder.onstop = () => {
         stream.getTracks().forEach((t) => t.stop());
-        void processRecording(new Blob(chunksRef.current, { type: mimeType || "audio/webm" }));
+        const blob = new Blob(chunksRef.current, { type: mimeType || "audio/webm" });
+        setAudioBlob(blob);
+        if (recordingSeconds > 120) {
+          setAppState("saved");
+        } else {
+          void processRecording(blob);
+        }
       };
 
       mediaRecorderRef.current = recorder;
@@ -190,8 +196,8 @@ export default function Page() {
       setAppState("form");
     } catch (err) {
       console.error("[intake] processRecording failed:", err);
-      alert("Something went wrong processing your recording. Please try again.");
-      setAppState("idle");
+      setAudioBlob(blob);
+      setAppState("saved");
     }
   };
 
@@ -275,6 +281,61 @@ export default function Page() {
         onStartOver={() => { setFormData(EMPTY_FORM); setAudioBlob(null); setAppState("idle"); }}
         onSubmitSuccess={(key, url) => { setJiraKey(key); setJiraUrl(url ?? null); setAppState("success"); }}
       />
+    );
+  }
+
+  if (appState === "saved") {
+    const downloadRecording = () => {
+      if (!audioBlob) return;
+      const url = URL.createObjectURL(audioBlob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `honk-intake-${new Date().toISOString().slice(0, 10)}.webm`;
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    const retrySubmit = () => {
+      if (!audioBlob) return;
+      setAppState("processing");
+      void processRecording(audioBlob);
+    };
+
+    return (
+      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 128px)", gap: 3, textAlign: "center", px: 3 }}>
+        <Typography variant="h4" fontWeight={700}>
+          We saved your recording.
+        </Typography>
+        <Typography color="text.secondary" sx={{ maxWidth: 480 }}>
+          {recordingSeconds > 120
+            ? "That was a long one! To avoid a timeout, download your recording and upload it as a file."
+            : "Something went wrong processing your recording, but it's safe. You can try again or download it."}
+        </Typography>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mt: 2 }}>
+          <Button
+            variant="outlined"
+            onClick={downloadRecording}
+            sx={{ borderRadius: 999, px: 4 }}
+          >
+            Download recording
+          </Button>
+          <Button
+            variant="contained"
+            onClick={retrySubmit}
+            sx={{ borderRadius: 999, px: 4 }}
+          >
+            Try submitting again
+          </Button>
+        </Stack>
+        <Button
+          variant="text"
+          size="small"
+          onClick={() => { setFormData(EMPTY_FORM); setAudioBlob(null); setAppState("idle"); }}
+          sx={{ mt: 1, color: "text.secondary" }}
+        >
+          Start over
+        </Button>
+      </Box>
     );
   }
 

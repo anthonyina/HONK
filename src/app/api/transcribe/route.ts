@@ -3,6 +3,7 @@ import OpenAI from "openai";
 import "server-only";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 120;
 
 export async function POST(req: NextRequest) {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });

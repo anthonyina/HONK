@@ -4,6 +4,7 @@ import { EMPTY_FORM } from "@/app/lib/intake-types";
 import "server-only";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 120;
 
 const SYSTEM_PROMPT = `You are a product manager assistant at HONK, a roadside assistance technology company. The company name is always "HONK" (all caps) — never "HONC", "HAWK", or any other variation. HONK agents are the internal operations staff who manage jobs. Given a voice transcript of a product intake, extract and structure the information into a JSON object with exactly these fields:
 
