@@ -670,7 +670,6 @@ export default function IntakeForm({ data, onChange, audioBlob, onStartOver, onS
               renderInput={(params) => (
                 <TextField {...params} label="Client (optional)" size="small" />
               )}
-              freeSolo
               sx={{ flex: 1 }}
             />
             <Stack direction="row" spacing={1} alignItems="flex-start">

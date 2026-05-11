@@ -31,7 +31,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   };
 
   if (data.clientName) {
-    fields.customfield_10686 = [{ value: data.clientName }];
+    // Only send to Jira if it's a valid option — free-text values cause 400 errors
+    const { HONK_CLIENTS } = await import("@/app/lib/intake-types");
+    if ((HONK_CLIENTS as readonly string[]).includes(data.clientName)) {
+      fields.customfield_10686 = [{ value: data.clientName }];
+    }
   }
 
   const payload = { fields };
