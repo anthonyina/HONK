@@ -49,7 +49,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!jiraRes.ok) {
     const error = await jiraRes.text();
     console.error("Jira API error", { status: jiraRes.status, url: `https://${siteUrl}/rest/api/3/issue`, error });
-    return res.status(500).json({ error: `Jira returned ${jiraRes.status} — check ATLASSIAN_SITE_URL (currently: ${siteUrl})`, detail: error });
+    let detail = "";
+    try { detail = JSON.parse(error)?.errors ? JSON.stringify(JSON.parse(error).errors) : error; } catch { detail = error; }
+    console.error("Jira API error", { status: jiraRes.status, detail });
+    return res.status(500).json({ error: `Jira returned ${jiraRes.status}: ${detail}` });
   }
 
   const created = await jiraRes.json() as { key: string; id: string };
