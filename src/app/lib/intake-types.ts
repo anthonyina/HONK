@@ -5,6 +5,8 @@ export type ResourceLink = { id: string; type: "link"; url: string; description:
 export type ResourceFile = { id: string; type: "file"; name: string; description: string };
 export type Resource = ResourceLink | ResourceFile;
 
+export type StepAudioBlob = { name: string; blob: Blob };
+
 export type Platform = "CurbsidePRO" | "HONK" | "";
 export type Impact = "Very Low" | "Low" | "Medium" | "High" | "Very High" | "";
 
@@ -29,6 +31,7 @@ export type IntakeFormData = {
   platform: Platform;
   clientName: string;
   yourName: string;
+  submitterAccountId: string;
   timeline: string;
   resources: Resource[];
 };
@@ -54,6 +57,7 @@ export const EMPTY_FORM: IntakeFormData = {
   platform: "HONK",
   clientName: "",
   yourName: "",
+  submitterAccountId: "",
   timeline: "",
   resources: [],
 };
@@ -103,6 +107,7 @@ export const DEMO_DATA: IntakeFormData = {
   platform: "HONK",
   clientName: "",
   yourName: "",
+  submitterAccountId: "",
   timeline: "",
   resources: [],
 };

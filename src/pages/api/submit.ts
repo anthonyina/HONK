@@ -21,6 +21,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ error: "Jira environment variables not configured" });
   }
 
+  const impactToRating: Record<string, number> = {
+    "Very Low": 1,
+    "Low": 2,
+    "Medium": 3,
+    "High": 4,
+    "Very High": 5,
+  };
+
   const fields: Record<string, unknown> = {
     project: { key: projectKey },
     summary: data.title,
@@ -28,7 +36,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     description: buildDescription(data),
     customfield_10075: data.shortDescription || undefined,
     customfield_10071: data.timeline || undefined,
+    customfield_10054: data.impact ? impactToRating[data.impact] : undefined,
   };
+
+  if (data.submitterAccountId) {
+    fields.reporter = { accountId: data.submitterAccountId };
+  }
 
   if (data.clientName) {
     // Only send to Jira if it's a valid option — free-text values cause 400 errors

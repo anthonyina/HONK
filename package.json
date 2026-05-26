@@ -16,7 +16,8 @@
     "lint:fix": "eslint . --fix",
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
-    "generate-multipart-paths": "node scripts/generate-valid-multipart-path-prefixes.js"
+    "generate-multipart-paths": "node scripts/generate-valid-multipart-path-prefixes.js",
+    "summary": "node --env-file=.env.local scripts/weekly-summary.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
@@ -31,6 +32,7 @@
     "@testing-library/user-event": "^14.6.1",
     "dayjs": "^1.11.20",
     "next": "16.1.6",
+    "next-auth": "^4.24.14",
     "openai": "^6.33.0",
     "pino": "^10.3.1",
     "react": "19.2.4",

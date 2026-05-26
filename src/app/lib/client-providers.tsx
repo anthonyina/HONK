@@ -10,6 +10,7 @@ import { useState } from "react";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { honkTheme } from "@/app/lib/honk-theme";
+import { SessionProvider } from "next-auth/react";
 import { HeaderActionsProvider } from "@/app/lib/header-actions-context";
 import { UploadAudioProvider } from "@/app/lib/upload-audio-context";
 
@@ -45,20 +46,22 @@ export default function ClientProviders({ children }: PropsWithChildren) {
   }, []);
 
   return (
-    <AppRouterCacheProvider options={{ key: "mui" }}>
-      <ThemeProvider theme={honkTheme}>
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <CssBaseline />
-        <QueryClientProvider client={queryClient}>
-          <ReactQueryDevtools initialIsOpen={false} />
-          <HeaderActionsProvider>
-            <UploadAudioProvider>
-              {children}
-            </UploadAudioProvider>
-          </HeaderActionsProvider>
-        </QueryClientProvider>
-        </LocalizationProvider>
-      </ThemeProvider>
-    </AppRouterCacheProvider>
+    <SessionProvider>
+      <AppRouterCacheProvider options={{ key: "mui" }}>
+        <ThemeProvider theme={honkTheme}>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <CssBaseline />
+          <QueryClientProvider client={queryClient}>
+            <ReactQueryDevtools initialIsOpen={false} />
+            <HeaderActionsProvider>
+              <UploadAudioProvider>
+                {children}
+              </UploadAudioProvider>
+            </HeaderActionsProvider>
+          </QueryClientProvider>
+          </LocalizationProvider>
+        </ThemeProvider>
+      </AppRouterCacheProvider>
+    </SessionProvider>
   );
 }

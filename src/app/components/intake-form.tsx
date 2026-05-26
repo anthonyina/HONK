@@ -25,7 +25,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import MenuItem from "@mui/material/MenuItem";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import type { IntakeFormData, Impact, MetricDirection, Platform, Resource, ResourceFile, ResourceLink, RetentionRisk } from "@/app/lib/intake-types";
+import type { IntakeFormData, Impact, MetricDirection, Platform, Resource, ResourceFile, ResourceLink, RetentionRisk, StepAudioBlob } from "@/app/lib/intake-types";
 import { HONK_CLIENTS } from "@/app/lib/intake-types";
 import { useHeaderActions } from "@/app/lib/header-actions-context";
 
@@ -333,7 +333,7 @@ function ResourcesSection({
 type Props = {
   data: IntakeFormData;
   onChange: (data: IntakeFormData) => void;
-  audioBlob?: Blob | null;
+  audioBlobs?: StepAudioBlob[];
   onStartOver: () => void;
   onSubmitSuccess?: (jiraKey: string, jiraUrl?: string) => void;
 };
@@ -360,12 +360,17 @@ const IMPACT_DEFINITIONS: { level: string; definition: string; examples: string 
   { level: "Very Low", definition: "Quality of life improvement. No measurable revenue, cost, or risk impact. Nice to have.", examples: "UI polish, label changes, internal tooling cosmetics" },
 ];
 
-export default function IntakeForm({ data, onChange, audioBlob, onStartOver, onSubmitSuccess }: Props) {
+type JiraUser = { accountId: string; displayName: string };
+
+export default function IntakeForm({ data, onChange, audioBlobs, onStartOver, onSubmitSuccess }: Props) {
   const [editing, setEditing] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [impactInfoOpen, setImpactInfoOpen] = useState(false);
   const [resourceFiles, setResourceFiles] = useState<Map<string, File>>(new Map());
+  const [jiraUsers, setJiraUsers] = useState<JiraUser[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { setRightAction } = useHeaderActions();
 
   useEffect(() => {
@@ -376,6 +381,22 @@ export default function IntakeForm({ data, onChange, audioBlob, onStartOver, onS
     );
     return () => setRightAction(null);
   }, [onStartOver, setRightAction]);
+
+  const searchUsers = (query: string) => {
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(async () => {
+      if (!query.trim()) { setJiraUsers([]); return; }
+      setUsersLoading(true);
+      try {
+        const res = await fetch(`/api/jira-users?q=${encodeURIComponent(query)}`);
+        if (res.ok) setJiraUsers((await res.json()) as JiraUser[]);
+      } catch {
+        // silently fail
+      } finally {
+        setUsersLoading(false);
+      }
+    }, 300);
+  };
 
   const toggle = (key: string) => setEditing((prev) => (prev === key ? null : key));
   const is = (key: string) => editing === key;
@@ -408,12 +429,13 @@ export default function IntakeForm({ data, onChange, audioBlob, onStartOver, onS
       }
       const { key, url } = (await res.json()) as { key: string; url?: string };
 
-      if (audioBlob) {
-        const filename = audioBlob instanceof File ? audioBlob.name : "recording.webm";
-        const fd = new FormData();
-        fd.append("key", key);
-        fd.append("audio", audioBlob, filename);
-        await fetch("/api/jira-attach", { method: "POST", body: fd });
+      if (audioBlobs?.length) {
+        for (const { name, blob } of audioBlobs) {
+          const fd = new FormData();
+          fd.append("key", key);
+          fd.append("audio", blob, name);
+          await fetch("/api/jira-attach", { method: "POST", body: fd });
+        }
       }
 
       for (const res of data.resources) {
@@ -660,8 +682,8 @@ export default function IntakeForm({ data, onChange, audioBlob, onStartOver, onS
               size="small"
               sx={{ height: 40 }}
             >
-              <ToggleButton value="CurbsidePRO">CurbsidePRO</ToggleButton>
               <ToggleButton value="HONK">HONK</ToggleButton>
+              <ToggleButton value="CurbsidePRO">CurbsidePRO</ToggleButton>
             </ToggleButtonGroup>
             <Autocomplete
               options={HONK_CLIENTS as unknown as string[]}
@@ -684,11 +706,11 @@ export default function IntakeForm({ data, onChange, audioBlob, onStartOver, onS
                 helperText={!data.impact ? "Required" : ""}
                 sx={{ minWidth: 150 }}
               >
-                <MenuItem value="Very High">Very High</MenuItem>
-                <MenuItem value="High">High</MenuItem>
-                <MenuItem value="Medium">Medium</MenuItem>
-                <MenuItem value="Low">Low</MenuItem>
-                <MenuItem value="Very Low">Very Low</MenuItem>
+                <MenuItem value="Very Low">Very Low (Quality of life)</MenuItem>
+                <MenuItem value="Low">Low (&lt;$25K annual impact)</MenuItem>
+                <MenuItem value="Medium">Medium ($25K-$100K)</MenuItem>
+                <MenuItem value="High">High ($100K-$500K)</MenuItem>
+                <MenuItem value="Very High">Very High ($500K+)</MenuItem>
               </TextField>
               <IconButton onClick={() => setImpactInfoOpen(true)} sx={{ mt: 0.5 }}>
                 <InfoOutlinedIcon />
@@ -703,15 +725,38 @@ export default function IntakeForm({ data, onChange, audioBlob, onStartOver, onS
             Submitter
           </Typography>
           <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-            <TextField
-              label="Your name"
-              value={data.yourName}
-              onChange={set("yourName")}
+            <Autocomplete
+              freeSolo
+              options={jiraUsers}
+              filterOptions={(x) => x}
+              getOptionLabel={(opt) => typeof opt === "string" ? opt : opt.displayName}
+              renderOption={(props, opt) => <li {...props} key={opt.accountId}>{opt.displayName}</li>}
+              value={data.yourName || null}
+              loading={usersLoading}
+              onChange={(_e, val) => {
+                if (val && typeof val !== "string") {
+                  onChange({ ...data, yourName: val.displayName, submitterAccountId: val.accountId });
+                } else {
+                  onChange({ ...data, yourName: (val as string) ?? "", submitterAccountId: "" });
+                }
+              }}
+              onInputChange={(_e, val, reason) => {
+                if (reason === "input") {
+                  onChange({ ...data, yourName: val, submitterAccountId: "" });
+                  searchUsers(val);
+                }
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Submitter"
+                  size="small"
+                  required
+                  error={!data.yourName}
+                  helperText={!data.yourName ? "Required" : ""}
+                />
+              )}
               fullWidth
-              size="small"
-              required
-              error={!data.yourName}
-              helperText={!data.yourName ? "Required" : ""}
             />
             <DatePicker
               label="Desired timeline"
