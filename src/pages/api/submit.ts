@@ -44,9 +44,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (data.clientName) {
-    // Only send to Jira if it's a valid option — free-text values cause 400 errors
-    const { HONK_CLIENTS } = await import("@/app/lib/intake-types");
-    if ((HONK_CLIENTS as readonly string[]).includes(data.clientName)) {
+    // Only send to Jira if it's a currently-valid option — anything else causes a
+    // 400 "Specify a valid value for HONK account". Validated against live Jira options.
+    const { isValidHonkClient } = await import("@/app/lib/honk-clients");
+    if (await isValidHonkClient(data.clientName)) {
       fields.customfield_10686 = [{ value: data.clientName }];
     }
   }

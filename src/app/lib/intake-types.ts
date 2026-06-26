@@ -62,24 +62,35 @@ export const EMPTY_FORM: IntakeFormData = {
   resources: [],
 };
 
+// Mirrors the exact options of Jira custom field customfield_10686 ("HONK account").
+// Keep in sync with Jira — any value here that is not a valid Jira option causes a
+// 400 "Specify a valid value for HONK account" on submit.
 export const HONK_CLIENTS = [
   "21st Century", "A-Max Auto Insurance", "ACV Auto Auctions", "Aegis",
   "American National", "Aspire", "Assurance", "Auto-Owners Insurance",
-  "Branch", "Bristol West", "Carvana", "Chevron Roadside", "Clearcover",
-  "Confie", "Connect", "Copart", "Cox Enterprises", "Curbside SOS",
-  "Cure Auto Insurance", "Dealer General", "Driven Brands", "Driven Solutions",
-  "Elephant Insurance", "FIMC", "Fair Warranty", "Farmers Crash Assist",
-  "Farmers Fleet", "Farmers Roadside", "First Connect Insurance", "FleetNet",
-  "Foremost Roadside", "Gather", "HONK", "HONK - a Lemonade Partner",
-  "HONK Roadside - a Wheels partner", "Highway Heroes", "Holman", "Home Depot",
-  "Insurance Auto Auctions", "InsureOne Auto Club", "KeyMe", "KeyMe Direct",
-  "KeyMe Lockout", "LeasePlan", "Lemonade", "MINI USA", "Metromile",
-  "NJM Insurance", "Norton Healthcare", "Ohio Mutual Insurance Company",
-  "Omega Autocare", "Pure Insurance", "Qualitas Insurance Company", "Reserv",
-  "Seaview Insurance", "ServiceUp", "Sewell", "Sixt Rent a Car LLC",
-  "Southwest Re", "Tint", "Toco Warranty", "Toggle", "Toggle Services",
-  "Toyota", "USAA", "Valley Insurance", "Vault", "Wawanesa Insurance",
-  "Waymo", "Whip", "Zoox", "eLockout",
+  "Bear River Mutual", "Beepi", "BMW", "Bond", "Branch",
+  "Branch Insurance", "Bristol West", "CarHero", "Carvana",
+  "Chevron Roadside", "Clearcover", "Confie", "Connect", "Copart", "Cover",
+  "Cox Enterprises", "Curbside SOS", "Cure Auto Insurance",
+  "Dealer General", "Drive America Online", "Driven Brands",
+  "Driven Solutions", "Driver", "Drivezy", "Elephant Insurance",
+  "eLockout", "Emergency Tow", "EZ Lynx", "Fair Warranty",
+  "Farmers Crash Assist", "Farmers Fleet", "Farmers Roadside", "FIMC",
+  "First Connect Insurance", "FleetNet", "Ford", "Foremost Roadside",
+  "Gather", "Getaround", "Go", "Highway Heroes", "Holman", "Home Depot",
+  "HyreCar", "Impact", "Insurance Auto Auctions", "InsureOne Auto Club",
+  "KeyMe", "KeyMe Direct", "KeyMe Lockout", "Kosella", "LeasePlan",
+  "Lemonade", "Metromile", "MINI USA", "Mobiliti", "MOTOR",
+  "NJM Insurance", "Norton Healthcare", "Nu Car Rentals",
+  "Ohio Mutual Insurance Company", "Omega Autocare", "Pact Insurance",
+  "Platinum Rental Car", "Pure Insurance", "Qualitas Insurance Company",
+  "Reserv", "Resource Mgmt Group", "Responsive Auto", "Riders Share",
+  "Rinse", "RYDE", "Seaview Insurance", "ServiceUp", "Sewell", "SHAiR",
+  "SHIFT", "Sixt Rent a Car LLC", "Skurt", "Southwest Re", "Tint",
+  "Toco at Work", "Toco Warranty", "Toggle Services", "Toyota",
+  "Travel Club by USAC-MD", "USAA", "Valley Insurance", "Vault",
+  "VIP Driven", "Vundee", "Wawanesa Insurance", "Waymo", "Wheels", "Whip",
+  "Zoox",
 ] as const;
 
 export const DEMO_DATA: IntakeFormData = {

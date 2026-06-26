@@ -370,6 +370,7 @@ export default function IntakeForm({ data, onChange, audioBlobs, onStartOver, on
   const [resourceFiles, setResourceFiles] = useState<Map<string, File>>(new Map());
   const [jiraUsers, setJiraUsers] = useState<JiraUser[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
+  const [clientOptions, setClientOptions] = useState<string[]>(HONK_CLIENTS as unknown as string[]);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { setRightAction } = useHeaderActions();
 
@@ -381,6 +382,22 @@ export default function IntakeForm({ data, onChange, audioBlobs, onStartOver, on
     );
     return () => setRightAction(null);
   }, [onStartOver, setRightAction]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/honk-clients");
+        if (res.ok && !cancelled) {
+          const list = (await res.json()) as string[];
+          if (Array.isArray(list) && list.length) setClientOptions(list);
+        }
+      } catch {
+        // keep the hardcoded fallback already in state
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   const searchUsers = (query: string) => {
     if (searchTimer.current) clearTimeout(searchTimer.current);
@@ -686,7 +703,7 @@ export default function IntakeForm({ data, onChange, audioBlobs, onStartOver, on
               <ToggleButton value="CurbsidePRO">CurbsidePRO</ToggleButton>
             </ToggleButtonGroup>
             <Autocomplete
-              options={HONK_CLIENTS as unknown as string[]}
+              options={clientOptions}
               value={data.clientName || null}
               onChange={(_e, val) => onChange({ ...data, clientName: val ?? "" })}
               renderInput={(params) => (
