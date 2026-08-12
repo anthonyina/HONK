@@ -1,0 +1,26 @@
+# Keep the deployment payload to the app itself.
+#
+# scripts/ doubles as a scratch area for analysis work (weather archives,
+# decks, exported reports) and had grown to ~1.6GB, which pushed deploys past
+# Vercel's 100MB file limit. Only the build helper below is actually needed:
+# package.json's prebuild runs scripts/generate-valid-multipart-path-prefixes.js.
+# Everything else here is data, not app source.
+scripts/nws-weather-data/
+scripts/product-marketing/
+scripts/weekly-summary-output/
+scripts/weekly-summary-archive/
+scripts/all-hands-slides/
+scripts/mockups/
+scripts/onboarding/
+*.pptx
+*.csv
+
+# Local scratch and analysis, not part of the build
+test_m4a/
+tripwire-analysis/
+.venv-docx/
+.claude/
+*.tsbuildinfo
+
+# Local test/dev artifacts
+src/app/__tests__/
