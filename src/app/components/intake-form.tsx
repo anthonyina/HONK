@@ -424,6 +424,12 @@ export default function IntakeForm({ data, onChange, audioBlobs, onStartOver, on
       onChange({ ...data, [field]: e.target.value });
 
   const handleSubmit = async () => {
+    // The heading falls back to "Product Intake" when the title is blank, so an
+    // empty title looks filled in — catch it here rather than let Jira 400.
+    if (!data.title.trim()) {
+      setSubmitError("Please add a title before submitting — tap the heading to edit it.");
+      return;
+    }
     if (!data.impact) {
       setSubmitError("Please select an Impact level before submitting.");
       return;
