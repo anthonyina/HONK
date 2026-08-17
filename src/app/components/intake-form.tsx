@@ -769,6 +769,11 @@ export default function IntakeForm({ data, onChange, audioBlobs, onStartOver, on
                   searchUsers(val);
                 }
               }}
+              onFocus={() => {
+                // A name carried over from an earlier step has no dropdown behind
+                // it yet, so there is nothing to pick and the account id stays empty.
+                if (data.yourName && !data.submitterAccountId) searchUsers(data.yourName);
+              }}
               renderInput={(params) => (
                 <TextField
                   {...params}
@@ -776,7 +781,13 @@ export default function IntakeForm({ data, onChange, audioBlobs, onStartOver, on
                   size="small"
                   required
                   error={!data.yourName}
-                  helperText={!data.yourName ? "Required" : ""}
+                  helperText={
+                    !data.yourName
+                      ? "Required"
+                      : data.submitterAccountId
+                        ? "Linked to their Jira account"
+                        : "Pick the name from the list so the ticket is filed under them"
+                  }
                 />
               )}
               fullWidth
