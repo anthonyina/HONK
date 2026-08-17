@@ -21,6 +21,54 @@ export function normalizeSummary(title: string): string {
     : collapsed;
 }
 
+type JiraUserSearchResult = {
+  accountId: string;
+  displayName: string;
+  accountType?: string;
+  active?: boolean;
+};
+
+/**
+ * The submitter field is a freeSolo autocomplete, so a name that was typed
+ * rather than picked off the dropdown arrives with no accountId. Left alone,
+ * Jira quietly files the ticket under the API token's own account, so every
+ * ticket looks like it came from whoever owns the token. Match the name back
+ * to an account here, and only when the match is unambiguous.
+ */
+export function pickSubmitterMatch(
+  users: JiraUserSearchResult[],
+  name: string,
+): string | null {
+  const wanted = (name ?? "").trim().toLowerCase();
+  if (!wanted) return null;
+
+  const candidates = users.filter((u) => u.active && u.accountType === "atlassian");
+  const exact = candidates.filter((u) => u.displayName.trim().toLowerCase() === wanted);
+
+  // Two people can share a display name — guessing between them would file the
+  // ticket under the wrong person, which is worse than leaving it unresolved.
+  if (exact.length === 1) return exact[0].accountId;
+  if (exact.length === 0 && candidates.length === 1) return candidates[0].accountId;
+  return null;
+}
+
+async function resolveSubmitterAccountId(
+  siteUrl: string,
+  name: string,
+): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `https://${siteUrl}/rest/api/3/user/search?query=${encodeURIComponent(name)}&maxResults=20`,
+      { headers: { Authorization: getAuthHeader(), Accept: "application/json" } },
+    );
+    if (!res.ok) return null;
+    return pickSubmitterMatch((await res.json()) as JiraUserSearchResult[], name);
+  } catch {
+    // A failed lookup should cost the reporter, not the whole ticket.
+    return null;
+  }
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -61,8 +109,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     customfield_10054: data.impact ? impactToRating[data.impact] : undefined,
   };
 
-  if (data.submitterAccountId) {
-    fields.reporter = { accountId: data.submitterAccountId };
+  const reporterAccountId =
+    data.submitterAccountId ||
+    (data.yourName ? await resolveSubmitterAccountId(siteUrl, data.yourName) : null);
+
+  if (reporterAccountId) {
+    fields.reporter = { accountId: reporterAccountId };
+  } else if (data.yourName) {
+    console.warn("Submitter not matched to a Jira account", { name: data.yourName });
   }
 
   if (data.clientName) {
@@ -96,5 +150,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const created = await jiraRes.json() as { key: string; id: string };
-  return res.status(200).json({ key: created.key, id: created.id, url: `https://${siteUrl}/browse/${created.key}` });
+  return res.status(200).json({
+    key: created.key,
+    id: created.id,
+    url: `https://${siteUrl}/browse/${created.key}`,
+    reporterSet: Boolean(reporterAccountId),
+  });
 }

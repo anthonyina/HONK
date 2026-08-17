@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { buildDescription, plainBulletList } from "@/app/lib/jira-adf";
-import { normalizeSummary } from "@/pages/api/submit";
+import { normalizeSummary, pickSubmitterMatch } from "@/pages/api/submit";
 import { EMPTY_FORM, DEMO_DATA } from "@/app/lib/intake-types";
 import type { AdfNode } from "@/app/lib/jira-adf";
 
@@ -221,5 +221,47 @@ describe("buildDescription produces valid ADF", () => {
       timeline: "2026-09-01",
     });
     expect(invalidNodes(doc).filter((n) => n === "empty bulletList")).toEqual([]);
+  });
+});
+
+describe("pickSubmitterMatch", () => {
+  const user = (displayName: string, accountId: string, extra = {}) => ({
+    displayName,
+    accountId,
+    accountType: "atlassian",
+    active: true,
+    ...extra,
+  });
+
+  it("matches a typed name back to its Jira account", () => {
+    const users = [user("Daren Haines", "acc-daren"), user("Darenna Wu", "acc-other")];
+    expect(pickSubmitterMatch(users, "Daren Haines")).toBe("acc-daren");
+    expect(pickSubmitterMatch(users, "  daren haines ")).toBe("acc-daren");
+  });
+
+  it("ignores customer and deactivated accounts", () => {
+    const users = [
+      user("Wilbur Aguiar", "acc-customer", { accountType: "customer" }),
+      user("Wilbur Aguiar", "acc-gone", { active: false }),
+      user("Wilbur Aguiar", "acc-real"),
+    ];
+    expect(pickSubmitterMatch(users, "Wilbur Aguiar")).toBe("acc-real");
+  });
+
+  it("takes the sole candidate when the name is a partial", () => {
+    expect(pickSubmitterMatch([user("Alex Belove", "acc-alex")], "Alex")).toBe("acc-alex");
+  });
+
+  it("refuses to guess between duplicate display names", () => {
+    const users = [user("Chris Hart", "acc-1"), user("Chris Hart", "acc-2")];
+    expect(pickSubmitterMatch(users, "Chris Hart")).toBeNull();
+  });
+
+  it("returns null for an ambiguous partial, no match, or blank name", () => {
+    const users = [user("Matt Maloney", "acc-1"), user("Matt Bijur", "acc-2")];
+    expect(pickSubmitterMatch(users, "Matt")).toBeNull();
+    expect(pickSubmitterMatch(users, "Nobody Here")).toBeNull();
+    expect(pickSubmitterMatch(users, "  ")).toBeNull();
+    expect(pickSubmitterMatch([], "Daren Haines")).toBeNull();
   });
 });
